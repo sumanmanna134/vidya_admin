@@ -11,6 +11,8 @@ const teachersPageDisplayRoutes = "/teachers";
 const authenticationPageDisplayName = "Log out";
 const authenticationPageRoute = "/auth";
 
+const createTeacherPageRoute = "/create/teacher";
+
 class MenuItem{
   final String name;
   final String route;

@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:vidya_admin/constants/colors.dart';
+import 'package:vidya_admin/constants/controller_constant.dart';
 import 'package:vidya_admin/widgets/custom_text.dart';
 
 class AuthenticationPage extends StatelessWidget {
@@ -46,6 +47,7 @@ class AuthenticationPage extends StatelessWidget {
                 height: 15,
               ),
               TextField(
+                controller: authController.email,
                 decoration: InputDecoration(
                     labelText: "Email",
                     hintText: "abc@domain.com",
@@ -57,6 +59,7 @@ class AuthenticationPage extends StatelessWidget {
               ),
               TextField(
                 obscureText: true,
+                controller: authController.password,
                 decoration: InputDecoration(
                     labelText: "Password",
                     hintText: "123",
@@ -87,6 +90,7 @@ class AuthenticationPage extends StatelessWidget {
               // ),
               InkWell(
                 onTap: (){
+                  authController.signIn();
                   // Get.offAllNamed(rootRoute);
                 },
                 child: Container(
