@@ -6,7 +6,9 @@ import 'package:vidya_admin/constants/colors.dart';
 import 'package:vidya_admin/constants/controller_constant.dart';
 import 'package:vidya_admin/constants/images.dart';
 import 'package:vidya_admin/helpers/ResponsiveWidget.dart';
+import 'package:vidya_admin/helpers/show_loading.dart';
 import 'package:vidya_admin/routing/routes.dart';
+import 'package:vidya_admin/screens/Auth/auth.dart';
 import 'package:vidya_admin/widgets/custom_text.dart';
 import 'package:vidya_admin/widgets/side_menu_item.dart';
 class SideMenu extends StatelessWidget {
@@ -15,7 +17,7 @@ class SideMenu extends StatelessWidget {
   Widget build(BuildContext context) {
     double _width = MediaQuery.of(context).size.width;
     return Container(
-      color: light,
+      color: dark,
       child: ListView(
         children: [
           if(ResponsiveWidget.isSmallScreen(context))
@@ -30,10 +32,10 @@ class SideMenu extends StatelessWidget {
                     SizedBox(width: _width/48,),
                     Padding(padding: const EdgeInsets.only(right: 12) , child: Image.asset(icLogo , width: 28 ),),
                     Flexible(child: CustomText(
-                      text: "Vidya Matrix",
+                      text: "Dashboard",
                       size: 20,
                       weight: FontWeight.bold,
-                      color: active,
+                      color: light,
                     )),
                     SizedBox(width: _width/48,)
 
@@ -51,8 +53,10 @@ class SideMenu extends StatelessWidget {
               itemName: item.name,
               onTap: (){
                 if(item.route == authenticationPageRoute){
-                  Get.offAllNamed(authenticationPageRoute);
-                  menuController.changeActiveItemTo(overviewPageDisplayName);
+                  showLoading();
+                  authController.signOut();
+
+                  // menuController.changeActiveItemTo(overviewPageDisplayName);
 
                 }
                 if (!menuController.isActive(item.name)) {
