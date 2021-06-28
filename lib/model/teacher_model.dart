@@ -25,7 +25,7 @@ class Teacher {
     this.pincode,
     this.state,
     this.photoUrl,
-    this.createdAt,
+
 
   });
 
@@ -40,7 +40,6 @@ class Teacher {
   String pincode;
   String state;
   String photoUrl;
-  String createdAt;
 
   factory Teacher.fromJson(Map<String, dynamic> json) => Teacher(
     name: json["name"] == null ? null : json["name"],
@@ -54,7 +53,6 @@ class Teacher {
     pincode: json["pincode"] == null ? null : json["pincode"],
     state: json["state"] == null ? null : json["state"],
     photoUrl: json["photo_url"] == null ? null : json["photo_url"],
-    createdAt: json["created_at"]==null? null : json["created_at"],
   );
 
   Map<String, dynamic> toJson() => {
@@ -69,7 +67,6 @@ class Teacher {
     "pincode": pincode == null ? null : pincode,
     "state": state == null ? null : state,
     "photo_url": photoUrl == null ? null : photoUrl,
-    "created_at" : createdAt == null? FieldValue.serverTimestamp() : createdAt,
   };
 
   Teacher.fromSnapshot(DocumentSnapshot snapshot){
@@ -84,7 +81,6 @@ class Teacher {
     pincode= snapshot.data()["pincode"] == null ? null : snapshot.data()["pincode"];
     state= snapshot.data()["state"] == null ? null : snapshot.data()["state"];
     photoUrl= snapshot.data()["photo_url"] == null ? null : snapshot.data()["photo_url"];
-    createdAt = snapshot.data()["created_at"] == null? null : snapshot.data()["created_at"];
 
 
   }
