@@ -27,8 +27,7 @@ void main()async{
 
   });
 
-
-
+    html.window.document.onContextMenu.listen((evt)=> evt.preventDefault());
 
 
   runApp(MyApp());

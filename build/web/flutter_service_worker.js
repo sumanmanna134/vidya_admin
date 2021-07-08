@@ -3,21 +3,21 @@ const MANIFEST = 'flutter-app-manifest';
 const TEMP = 'flutter-temp-cache';
 const CACHE_NAME = 'flutter-app-cache';
 const RESOURCES = {
-  "assets/AssetManifest.json": "2e3383f8b9435befa8a4430e97b2b46e",
-"assets/assets/images/logo.png": "a57feb178c0a8ded57c51f5eae692447",
-"assets/FontManifest.json": "dc3d03800ccca4601324923c0b1d6d57",
-"assets/fonts/MaterialIcons-Regular.otf": "4e6447691c9509f7acdbf8a931a85ca1",
-"assets/NOTICES": "2fa04c0835d4d8fbaed5439c6fd6d84f",
-"assets/packages/cupertino_icons/assets/CupertinoIcons.ttf": "6d342eb68f170c97609e9da345464e5e",
-"assets/packages/fluttertoast/assets/toastify.css": "a85675050054f179444bc5ad70ffc635",
-"assets/packages/fluttertoast/assets/toastify.js": "e7006a0a033d834ef9414d48db3be6fc",
-"favicon.png": "5dcef449791fa27946b3d35ad8803796",
+  "index.html": "e7fa7811cee32d63b4068c600cd35e3c",
+"/": "e7fa7811cee32d63b4068c600cd35e3c",
+"manifest.json": "a08957187c53df7b6a18df77da394d1f",
 "icons/Icon-192.png": "ac9a721a12bbc803b44f645561ecb1e1",
 "icons/Icon-512.png": "96e752610906ba2a93c65f8abe1645f1",
-"index.html": "02ef5634267b5d89014006ba209b2b9b",
-"/": "02ef5634267b5d89014006ba209b2b9b",
-"main.dart.js": "7d3751928db74533805c497eacce5c5f",
-"manifest.json": "99a636187f3ec873fe428d39b4df09c3",
+"assets/packages/cupertino_icons/assets/CupertinoIcons.ttf": "6d342eb68f170c97609e9da345464e5e",
+"assets/packages/fluttertoast/assets/toastify.js": "e7006a0a033d834ef9414d48db3be6fc",
+"assets/packages/fluttertoast/assets/toastify.css": "a85675050054f179444bc5ad70ffc635",
+"assets/assets/images/logo.png": "a57feb178c0a8ded57c51f5eae692447",
+"assets/AssetManifest.json": "2e3383f8b9435befa8a4430e97b2b46e",
+"assets/NOTICES": "85bd63d1568c14da37d1300850d6e3a6",
+"assets/FontManifest.json": "dc3d03800ccca4601324923c0b1d6d57",
+"assets/fonts/MaterialIcons-Regular.otf": "4e6447691c9509f7acdbf8a931a85ca1",
+"main.dart.js": "fb7c929bb80d746729cd714db4efbabd",
+"favicon.png": "5dcef449791fa27946b3d35ad8803796",
 "version.json": "f3198ef8afae55461064a2c3f0750983"
 };
 
