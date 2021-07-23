@@ -5,8 +5,6 @@
 
 import 'dart:convert';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
-
 Teacher teacherFromJson(String str) => Teacher.fromJson(json.decode(str));
 
 String teacherToJson(Teacher data) => json.encode(data.toJson());
@@ -69,19 +67,5 @@ class Teacher {
     "photo_url": photoUrl == null ? null : photoUrl,
   };
 
-  Teacher.fromSnapshot(DocumentSnapshot snapshot){
-    name = snapshot.data()["name"];
-    email = snapshot.data()["email"];
-    password= snapshot.data()["password"];
-    phone= snapshot.data()["phone"];
-    role= snapshot.data()["role"];
-    subject= snapshot.data()["subject"] == null ? [] : List<String>.from(snapshot.data()["subject"].map((x) => x));
-    primaryAddress= snapshot.data()["primary_address"] == null ? null : snapshot.data()["primary_address"];
-    presentAddress= snapshot.data()["present_address"] == null ? null : snapshot.data()["present_address"];
-    pincode= snapshot.data()["pincode"] == null ? null : snapshot.data()["pincode"];
-    state= snapshot.data()["state"] == null ? null : snapshot.data()["state"];
-    photoUrl= snapshot.data()["photo_url"] == null ? null : snapshot.data()["photo_url"];
 
-
-  }
 }

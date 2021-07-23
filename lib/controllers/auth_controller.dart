@@ -1,158 +1,212 @@
 //@dart=2.9
 
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+
+import 'dart:html';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:vidya_admin/constants/api_constant.dart';
 import 'package:vidya_admin/constants/firebase.dart';
 import 'package:vidya_admin/helpers/show_loading.dart';
+import 'package:vidya_admin/helpers/storage.dart';
+import 'package:vidya_admin/model/alluser_model.dart';
+import 'package:vidya_admin/model/blockModel.dart';
+import 'package:vidya_admin/model/errorModel.dart';
 import 'package:vidya_admin/model/teacher_model.dart';
+import 'package:vidya_admin/model/user_model.dart';
 import 'package:vidya_admin/routing/routes.dart';
 import 'package:vidya_admin/screens/Auth/auth.dart';
+import 'package:vidya_admin/services/api.dart';
 import 'package:vidya_admin/site_layout.dart';
+import 'package:vidya_admin/widgets/popup.dart';
 
 
 class AuthController extends GetxController{
   static AuthController instance = Get.find();
-  Rx<User> firebaseUser  = new Rx<User>(null);
-  RxBool isLoggedIn = false.obs;
-  TextEditingController name = TextEditingController();
+  RxBool loginProcess = false.obs;
+  // TextEditingController name = TextEditingController();
   TextEditingController email = TextEditingController();
   TextEditingController password = TextEditingController();
-  TextEditingController phone = TextEditingController();
-  TextEditingController primaryAddress = TextEditingController();
-  TextEditingController presentAddress = TextEditingController();
-  TextEditingController pincode = TextEditingController();
-  TextEditingController state = TextEditingController();
+  // TextEditingController phone = TextEditingController();
+  // TextEditingController primaryAddress = TextEditingController();
+  // TextEditingController presentAddress = TextEditingController();
+  // TextEditingController pincode = TextEditingController();
+  // TextEditingController state = TextEditingController();
+  Rx<User> userModel = User().obs;
+  RxList<Users> teachers =  RxList<Users>();
 
-  String teacherCollection = "teachers";
-  Rx<Teacher> teacherModel = Teacher().obs;
+  final GlobalKey<FormState> loginFormKey = GlobalKey<FormState>();
 
   @override
   void onReady() {
-    // TODO: implement onReady
+    _setInitialScreen();
+
     super.onReady();
-    firebaseUser = Rx<User>(auth.currentUser);
-    firebaseUser.bindStream(auth.userChanges());
-    ever(firebaseUser, _setInitialScreen);
   }
 
-  _setInitialScreen(User user) {
-    if(user == null){
+  _setInitialScreen(){
+
+    if(!_isAuthenticated()){
       Get.offAll(AuthenticationPage());
       dismissLoadingWidget();
 
-
     }else{
-      firebaseUser.value = user;
       Get.offAll(SiteLayout());
-      _initializeUserModel(firebaseUser.value.uid);
-      print("Logged in");
     }
   }
 
-void signIn()async{
+  bool _isAuthenticated(){
+    var authKey = StorageUtil.getString(R.authToken , defValue: null);
+
+
+    if(authKey!=null){
+      getMyprofile();
+      return true;
+    }
+    else return false;
+  }
+
+
+
+  @override
+  void onClose() {
+    email.dispose();
+    password.dispose();
+  }
+
+  String validateEmail(String value){
+    if(!GetUtils.isEmail(value)){
+      return "Provide valid Email";
+    }
+    return null;
+  }
+
+  String validatePassword(String value){
+    if(value.length<6){
+      return "Password must be 6 characters";
+    }
+
+    return null;
+  }
+
+  void checkLogin(){
+    final isValid = loginFormKey.currentState.validate();
+    if(!isValid){
+      return;
+    }
+
+    loginFormKey.currentState.save();
+    login(email: email.text, password: password.text);
+  }
+
+  Future<String> login({String email, String password})async{
     try{
       showLoading();
-      await auth.signInWithEmailAndPassword(email: email.text.trim(),
-          password: password.text.trim()).then((result) {
-            String _userId = result.user.uid;
-            _initializeUserModel(_userId);
-            _clearControllers();
-            dismissLoadingWidget();
-            updateOnlineStatus(true);
-            Get.snackbar("Success", "Successfully Login", backgroundColor: Colors.green , colorText: Colors.white );
+      var loginResp = await Api.login(email: email, password: password);
 
-      });
+      print("LOGIN RESPONSE ${loginResp.runtimeType}");
+      if(loginResp!=null && loginResp is User){
+
+        userModel.value = loginResp;
+        StorageUtil.putString(R.authToken, userModel.value.token);
+        dismissLoadingWidget();
+        _clearControllers();
+        _setInitialScreen();
+
+
+      }else{
+        print("ERROREEEEEEEEEEEEE");
+        dismissLoadingWidget();
+        Get.defaultDialog(title: "Error", barrierDismissible: true, content: Text(loginResp.errMessage));
+        Get.snackbar("Failed to SignIn", "Try again" , duration: Duration(seconds: 5),  backgroundColor: Colors.red , colorText: Colors.white);
+      }
     }catch(e){
-      debugPrint(e.toString());
-      dismissLoadingWidget();
+
       Get.snackbar("Failed to SignIn", "Try again" , duration: Duration(seconds: 5),  backgroundColor: Colors.red , colorText: Colors.white);
+
+    }finally{
+      dismissLoadingWidget();
     }
-}
-
-Future signOut() async {
-    updateOnlineStatus(false);
-    auth.signOut();
-    return Future.delayed(Duration.zero);
   }
-void signUp()async{
-    showLoading();
+
+  Future getMyprofile()async {
+
     try{
-      await auth.createUserWithEmailAndPassword(email: email.text.trim(),
-          password: password.text.trim()).then((result) {
+      var profile = await Api.getMyProfile();
+      print(profile.runtimeType);
+      if(profile is User){
+        userModel.value.user = profile.user;
+      }else if(profile is ErrorModel){
+        Get.snackbar("${profile.message}", "login" ,isDismissible: true, backgroundColor: Colors.red , duration: Duration(seconds: 3), colorText: Colors.white);
+        StorageUtil.clear();
+        _setInitialScreen();
 
-            String _userId = result.user.uid;
-            _addUserToFirestore(_userId);
-            _initializeUserModel(_userId);
-            updateOnlineStatus(true);
-            Get.snackbar("Success", "Successfully Created Account", backgroundColor: Colors.green , colorText: Colors.white );
-            dismissLoadingWidget();
-
-
-      });
+      }
     }catch(e){
 
-      debugPrint(e.toString());
-      dismissLoadingWidget();
-      Get.snackbar("Failed to Create Account", "Try again" , duration: Duration(seconds: 5),  backgroundColor: Colors.red , colorText: Colors.white);
+
+      Get.snackbar("Something Went Wrong ${e.toString()}", "login" ,isDismissible: true, backgroundColor: Colors.red , colorText: Colors.white);
+
+
+
 
     }
-}
 
-_addUserToFirestore(String userId){
-    firebaseFirestore.collection(teacherCollection).doc(userId).set(
-      Teacher(
-        name: name.text.trim(),
-        email: email.text.trim(),
-        phone: phone.text,
-        password: password.text.trim(),
-        presentAddress: presentAddress.text.trim(),
-        primaryAddress: primaryAddress.text.trim(),
-        pincode: pincode.text,
-        state: state.text.trim(),
+  }
+
+  void signOut()async{
+
+    await Api.logout().then((value) => value?_setInitialScreen():Get.snackbar("Something Went Wrong", "login" , duration: Duration(seconds: 5),  backgroundColor: Colors.red , colorText: Colors.white));
+
+  }
+
+  Future<List<Users>> retrieveTeachers()async{
+    try{
+       var users = await Api().getAllUsers();
+       if(users is AllUserModel){
+         teachers.value= users.user;
+       }
+       return teachers;
+
+    }catch(e){
+      dismissLoadingWidget();
+      Get.snackbar("Something Went Wrong ${e.toString()}", "login" ,isDismissible: true, backgroundColor: Colors.red , colorText: Colors.white);
+
+    }
+
+  }
+
+  Future<BlockModel> blockUser({@required String email, @required bool isDisable})async{
+
+    try{
+      var userBlock = await Api().userBlock(email: email, isDisable: isDisable);
+      print(userBlock);
+      if(userBlock is BlockModel){
+        Get.snackbar("Success", userBlock.message);
+      }
+
+      return userBlock;
+
+    }catch(e){
+      Get.snackbar("Something Went Wrong ${e.toString()}", "login" ,isDismissible: true, backgroundColor: Colors.red , colorText: Colors.white);
+
+    }
+  }
 
 
-      ).toJson()
-    );
-}
 
-_initializeUserModel(String userId)async{
-    teacherModel.value = await firebaseFirestore
-        .collection(teacherCollection)
-        .doc(userId)
-        .get()
-        .then((doc) => Teacher.fromSnapshot(doc));
-}
+
+
+
 
 _clearControllers(){
-    name.clear();
     email.clear();
-    phone.clear();
     password.clear();
-    primaryAddress.clear();
-    presentAddress.clear();
-    pincode.clear();
-    state.clear();
 }
 
-  Stream<QuerySnapshot> retrieveTeachers() {
-    Stream<QuerySnapshot> myTeachers = firebaseFirestore.collection(teacherCollection).snapshots();
 
-    return myTeachers;
-  }
 
-  updateOnlineStatus(bool status){
-    try {
-      firebaseFirestore.collection(teacherCollection)
-          .doc(firebaseUser.value.uid)
-          .update({"online": status});
-    }
-    catch(e){
-      print("user null");
-    }
-  }
 
 
 

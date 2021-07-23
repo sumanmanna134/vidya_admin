@@ -13,8 +13,8 @@ Route<dynamic> generateRoute(RouteSettings settings){
       return _getPageRoute(TeacherManager());
     case booksPageRoute:
       return _getPageRoute(BooksManager());
-    case createTeacherPageRoute:
-      return _getPageRoute(CreateTeacher());
+    // case createTeacherPageRoute:
+    //   return _getPageRoute(CreateTeacher());
     default:
       return _getPageRoute(Overview());
   }

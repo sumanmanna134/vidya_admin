@@ -60,7 +60,7 @@ AppBar topNavigationBar(BuildContext context, GlobalKey<ScaffoldState> key)=>
               color: lightGrey,
             ),
             SizedBox(width: 24,),
-            CustomText(text: "${authController.teacherModel.value.name}",),
+            CustomText(text: "${authController.userModel?.value?.user?.name??"Loading.."}",),
             SizedBox(width: 16,),
             Container(
               decoration: BoxDecoration(

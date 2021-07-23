@@ -22,14 +22,17 @@ class AuthenticationPage extends StatelessWidget {
 
             children: [
 
-
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text("Login",
-                      style: TextStyle(
-                          fontSize: 30, fontWeight: FontWeight.bold)),
-                ],
+              Form(
+                key: authController.loginFormKey,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text("Login",
+                        style: TextStyle(
+                            fontSize: 30, fontWeight: FontWeight.bold)),
+                  ],
+                ),
               ),
               SizedBox(
                 height: 10,
@@ -46,25 +49,37 @@ class AuthenticationPage extends StatelessWidget {
               SizedBox(
                 height: 15,
               ),
-              TextField(
+              TextFormField(
                 controller: authController.email,
                 decoration: InputDecoration(
                     labelText: "Email",
                     hintText: "abc@domain.com",
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20))),
+                onSaved: (value){
+                  authController.email.text=value;
+                },
+                validator: (value){
+                  return authController.validateEmail(value);
+                },
               ),
               SizedBox(
                 height: 15,
               ),
-              TextField(
+              TextFormField(
                 obscureText: true,
                 controller: authController.password,
                 decoration: InputDecoration(
                     labelText: "Password",
-                    hintText: "123",
+                    hintText: "************",
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20))),
+                onSaved: (value){
+                  authController.password.text = value;
+                },
+                validator: (value){
+                  return authController.validatePassword(value);
+                },
               ),
               SizedBox(
                 height: 15,
@@ -90,7 +105,9 @@ class AuthenticationPage extends StatelessWidget {
               // ),
               InkWell(
                 onTap: (){
-                  authController.signIn();
+
+                  print("HLogin");
+                  authController.checkLogin();
                   // Get.offAllNamed(rootRoute);
                 },
                 child: Container(
