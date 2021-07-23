@@ -1,17 +1,44 @@
 //@dart=2.9
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:vidya_admin/constants/api_constant.dart';
 import 'package:vidya_admin/constants/colors.dart';
 import 'package:vidya_admin/constants/controller_constant.dart';
+import 'package:vidya_admin/helpers/show_loading.dart';
+import 'package:vidya_admin/model/alluser_model.dart';
 import 'package:vidya_admin/model/teacher_model.dart';
 import 'package:vidya_admin/routing/routes.dart';
 import 'package:vidya_admin/screens/teachers/create_teacher.dart';
+import 'package:vidya_admin/services/api.dart';
 import 'package:vidya_admin/widgets/custom_text.dart';
 import 'package:get/get.dart';
+import 'package:vidya_admin/widgets/popup.dart';
 
-class TeacherListTable extends StatelessWidget {
+class TeacherListTable extends StatefulWidget {
+  @override
+  _TeacherListTableState createState() => _TeacherListTableState();
+}
+
+class _TeacherListTableState extends State<TeacherListTable> {
+
+  Future allUsers;
+  List<Users> teachers =[];
+  @override
+  void initState() {
+    print("init state");
+    getAllTeachers();
+    // TODO: implement initState
+
+  }
+  getAllTeachers(){
+
+      allUsers = authController.retrieveTeachers();
+
+    return allUsers;
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -46,6 +73,10 @@ class TeacherListTable extends StatelessWidget {
               ),
               InkWell(
                 onTap: (){
+
+                  authController.userModel.value.user.role!=R.RoleAdmin?
+                  showWarnDialog(text: 'You Do not have Sufficient Permission to Access,\n Contact with Your Admin'):
+
                   navigationController.navigateTo(createTeacherPageRoute);
 
                 },
@@ -65,74 +96,131 @@ class TeacherListTable extends StatelessWidget {
               )
             ],
           ),
-          StreamBuilder<QuerySnapshot>(
-            stream: authController.retrieveTeachers(),
+          FutureBuilder(
+            future: getAllTeachers(),
             builder: (context, snapshot){
-              if(snapshot.hasData){
+              if(snapshot.hasError) return showSnackBar(title: "Error", text: "Something Went Wrong");
+              switch(snapshot.connectionState){
+                case ConnectionState.none:
+                case ConnectionState.waiting:
+                  return Center(child: CircularProgressIndicator());
+                case ConnectionState.active:
+                  return Center(child: Text("Fetching.."),);
+                case ConnectionState.done:
+                  if(snapshot.hasData){
+                    return DataTable2(
+                        columnSpacing: 12,
+                        horizontalMargin: 12,
+                        minWidth: 600,
+                        columns: [
+                          DataColumn2(
+                            label: Text("Name"),
+                            size: ColumnSize.L,
+                          ),
+                          DataColumn(
+                            label: Text('Email'),
+                          ),
+                          DataColumn(
+                            label: Text('Phone'),
+                          ),
+                          DataColumn(
+                            label: Text('Action'),
+                          ),
+                        ],
+                        rows:authController.teachers.isEmpty?Container(
+                          child: Center(child: Text("No Data Available"),),
+                        ):
+                        List.generate(authController.teachers.length, (index) {
 
-                return DataTable2(
-                    columnSpacing: 12,
-                    horizontalMargin: 12,
-                    minWidth: 600,
-                    columns: [
-                      DataColumn2(
-                        label: Text("Name"),
-                        size: ColumnSize.L,
-                      ),
-                      DataColumn(
-                        label: Text('Email'),
-                      ),
-                      DataColumn(
-                        label: Text('Phone'),
-                      ),
-                      DataColumn(
-                        label: Text('Action'),
-                      ),
-                    ],
-                    rows:List.generate(snapshot.data.docs.length, (index) {
-                      Map<String, dynamic> teacherinfo = snapshot.data.docs[index].data();
+                          return DataRow(cells: [
+                            DataCell(CustomText(text: "${authController.teachers[index].name}")),
+                            DataCell(CustomText(text: "${authController.teachers[index].email}")),
+                            DataCell(Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.call,
+                                  color: Colors.lightGreen,
+                                  size: 18,
+                                ),
+                                SizedBox(
+                                  width: 5,
+                                ),
+                                CustomText(
+                                  text: "${authController.teachers[index].phone}",
+                                )
+                              ],
+                            )),
+                            DataCell(
+                                authController.userModel.value.user.role==R.RoleAdmin &&
+                                    authController.teachers[index].id!=authController.userModel.value.user.id?
+                                InkWell(
+                                  child: Container(
+                                      decoration: BoxDecoration(
+                                        color: light,
+                                        borderRadius: BorderRadius.circular(20),
+                                        border: Border.all(color: active, width: .5),
+                                      ),
+                                      padding: EdgeInsets.symmetric(
+                                          horizontal: 12, vertical: 6),
+                                      child: CustomText(
+                                        text: authController.teachers[index].isDisable ? "Unblock" : "Block",
+                                        color: active.withOpacity(.7),
+                                        weight: FontWeight.bold,
+                                      )),
+                                  onTap: ()async{
+                                    print(authController.teachers[index].email);
+                                    showLoading();
+                                    var value = authController.teachers[index].isDisable?false:true;
 
-                      Teacher teacher = Teacher.fromJson(teacherinfo);
-                      return DataRow(cells: [
-                        DataCell(CustomText(text: "${teacher.name}")),
-                        DataCell(CustomText(text: "${teacher.email}")),
-                        DataCell(Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.call,
-                              color: Colors.lightGreen,
-                              size: 18,
+                                    await authController.blockUser(email: authController.teachers[index].email, isDisable: value)
+                                        .then((value) {
+                                      authController.retrieveTeachers();
+                                      dismissLoadingWidget();
+                                    });
+
+
+                                    setState(()  {
+                                    });
+
+                                    print("onTap");
+
+
+
+                                  },
+                                ):
+                                InkWell(
+                                  child: Container(
+                                      decoration: BoxDecoration(
+                                        color: light,
+                                        borderRadius: BorderRadius.circular(20),
+                                        border: Border.all(color: active, width: .5),
+                                      ),
+                                      padding: EdgeInsets.symmetric(
+                                          horizontal: 12, vertical: 6),
+                                      child: CustomText(
+                                        text: "View",
+                                        color: active.withOpacity(.7),
+                                        weight: FontWeight.bold,
+                                      )),
+                                  onTap: (){
+                                    print(authController.teachers[index].email);
+
+
+
+                                  },
+                                )
                             ),
-                            SizedBox(
-                              width: 5,
-                            ),
-                            CustomText(
-                              text: "${teacher.phone}",
-                            )
-                          ],
-                        )),
-                        DataCell(Container(
-                            decoration: BoxDecoration(
-                              color: light,
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(color: active, width: .5),
-                            ),
-                            padding: EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 6),
-                            child: CustomText(
-                              text: "Delete Teacher",
-                              color: active.withOpacity(.7),
-                              weight: FontWeight.bold,
-                            ))),
-                      ]);
-                    })
+                          ]);
+                        })
 
-                );
+                    );
 
-              }else{
-                return Center(child: CircularProgressIndicator());
+                  } else Center(child: Text("No Data Found !"),);
+
+
               }
+              return Center(child: Text(""),);
             },
           )
 
